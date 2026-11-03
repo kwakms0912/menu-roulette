@@ -1,0 +1,723 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PF 패밀리의 오늘 뭐 먹지? 🍕</title>
+
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Google Fonts (Noto Sans KR) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;600;700;900&display=swap" rel="stylesheet">
+
+    <!-- Canvas Confetti CDN (폭죽 효과용) -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+    <!-- FontAwesome Icons CDN -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        body {
+            font-family: 'Noto Sans KR', sans-serif;
+            background: linear-gradient(135deg, #fce7f3 0%, #fae8ff 40%, #e0e7ff 70%, #dbeafe 100%);
+            min-height: 100vh;
+        }
+
+        /* 커스텀 그림자 및 빛나는 효과 */
+        .glow-effect {
+            box-shadow: 0 10px 30px rgba(244, 63, 94, 0.25);
+        }
+
+        .btn-glow {
+            box-shadow: 0 8px 25px rgba(244, 63, 94, 0.4);
+            transition: all 0.2s ease-in-out;
+        }
+
+        .btn-glow:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 30px rgba(244, 63, 94, 0.6);
+        }
+
+        .btn-glow:active:not(:disabled) {
+            transform: translateY(1px);
+        }
+
+        /* 모달 애니메이션 */
+        @keyframes modalPop {
+            0% { transform: scale(0.8) translateY(20px); opacity: 0; }
+            100% { transform: scale(1) translateY(0); opacity: 1; }
+        }
+
+        .animate-modal {
+            animation: modalPop 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+        }
+
+        /* 커스텀 스크롤바 */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.05);
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(244, 114, 182, 0.4);
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(244, 114, 182, 0.7);
+        }
+
+        /* 돼지 캐릭터 둥둥 애니메이션 */
+        @keyframes floatSlow {
+            0%, 100% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-8px) rotate(2deg); }
+        }
+        .animate-float {
+            animation: floatSlow 4s ease-in-out infinite;
+        }
+    </style>
+</head>
+<body class="text-slate-800 selection:bg-pink-500 selection:text-white">
+
+    <div class="min-h-screen flex flex-col items-center justify-between p-4 sm:p-6 md:p-8 max-w-4xl mx-auto relative overflow-hidden">
+        
+        <!-- Header 영역 -->
+        <header class="text-center my-4 z-10 px-2">
+            <div class="inline-block bg-white/80 border border-pink-300 rounded-full px-4 py-1 mb-2 shadow-sm backdrop-blur-md">
+                <span class="text-xs sm:text-sm font-bold text-pink-600">✨ Pig Family Dinner Picker</span>
+            </div>
+            <h1 class="text-3xl sm:text-5xl font-black tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-rose-500 via-pink-600 to-purple-600 drop-shadow-sm leading-normal sm:leading-relaxed py-2">
+                Pig Family의 오늘 뭐 먹지? 🍕
+            </h1>
+        </header>
+
+        <!-- Main Content Area -->
+        <main class="w-full grid grid-cols-1 lg:grid-cols-12 gap-8 items-center my-auto py-4 z-10">
+            
+            <!-- 왼쪽/상단: 룰렛 캔버스 영역 -->
+            <div class="lg:col-span-7 flex flex-col items-center justify-center relative">
+                
+                <!-- 귀여운 돼지 4마리 옹기종기 패밀리 일러스트 (상단 모임 레이아웃) -->
+                <div class="w-full max-w-[340px] sm:max-w-[420px] mb-3 flex flex-col items-center justify-center relative z-10 animate-float">
+                    <!-- 옹기종기 모인 Pig Family 일러스트 카드 -->
+                    <div class="bg-white/70 backdrop-blur-md border-2 border-pink-200 rounded-2xl px-3 py-2 sm:px-4 sm:py-2.5 flex items-center justify-center gap-2 sm:gap-3 shadow-lg max-w-full">
+                        
+                        <!-- 아빠 돼지 -->
+                        <div class="flex flex-col items-center shrink-0">
+                            <svg class="w-10 h-10 sm:w-14 sm:h-14 filter drop-shadow-sm" viewBox="0 0 100 100">
+                                <polygon points="20,30 35,10 45,32" fill="#f472b6" />
+                                <polygon points="80,30 65,10 55,32" fill="#f472b6" />
+                                <circle cx="50" cy="55" r="38" fill="#fbcfe8" stroke="#f472b6" stroke-width="3"/>
+                                <circle cx="36" cy="48" r="4" fill="#1e293b"/>
+                                <circle cx="64" cy="48" r="4" fill="#1e293b"/>
+                                <ellipse cx="50" cy="62" rx="14" ry="10" fill="#f472b6"/>
+                                <circle cx="44" cy="62" r="3" fill="#9d174d"/>
+                                <circle cx="56" cy="62" r="3" fill="#9d174d"/>
+                                <polygon points="50,78 44,95 50,98 56,95" fill="#3b82f6"/>
+                            </svg>
+                            <span class="text-[9px] sm:text-[11px] font-bold text-slate-700 bg-pink-100 px-2 py-0.5 rounded-full border border-pink-300 shadow-sm whitespace-nowrap">아빠 🐷</span>
+                        </div>
+
+                        <!-- 엄마 돼지 -->
+                        <div class="flex flex-col items-center shrink-0">
+                            <svg class="w-10 h-10 sm:w-14 sm:h-14 filter drop-shadow-sm" viewBox="0 0 100 100">
+                                <path d="M 22 15 Q 30 10 35 22 Q 30 30 22 25 Z" fill="#ec4899"/>
+                                <path d="M 48 15 Q 40 10 35 22 Q 40 30 48 25 Z" fill="#ec4899"/>
+                                <circle cx="35" cy="21" r="4" fill="#f43f5e"/>
+                                <polygon points="20,35 32,15 42,37" fill="#f472b6" />
+                                <polygon points="80,35 68,15 58,37" fill="#f472b6" />
+                                <circle cx="50" cy="58" r="36" fill="#fbcfe8" stroke="#f472b6" stroke-width="3"/>
+                                <circle cx="36" cy="52" r="4" fill="#1e293b"/>
+                                <circle cx="64" cy="52" r="4" fill="#1e293b"/>
+                                <circle cx="28" cy="60" r="5" fill="#f43f5e" opacity="0.4"/>
+                                <circle cx="72" cy="60" r="5" fill="#f43f5e" opacity="0.4"/>
+                                <ellipse cx="50" cy="64" rx="13" ry="9" fill="#f472b6"/>
+                                <circle cx="45" cy="64" r="2.5" fill="#9d174d"/>
+                                <circle cx="55" cy="64" r="2.5" fill="#9d174d"/>
+                            </svg>
+                            <span class="text-[9px] sm:text-[11px] font-bold text-slate-700 bg-pink-100 px-2 py-0.5 rounded-full border border-pink-300 shadow-sm whitespace-nowrap">엄마 🎀</span>
+                        </div>
+
+                        <!-- 아들 돼지 (혼 돼지) -->
+                        <div class="flex flex-col items-center shrink-0">
+                            <svg class="w-9 h-9 sm:w-12 sm:h-12 filter drop-shadow-sm" viewBox="0 0 100 100">
+                                <polygon points="22,32 35,15 44,34" fill="#f472b6" />
+                                <polygon points="78,32 65,15 56,34" fill="#f472b6" />
+                                <circle cx="50" cy="55" r="34" fill="#fbcfe8" stroke="#f472b6" stroke-width="3"/>
+                                <circle cx="38" cy="50" r="3.5" fill="#1e293b"/>
+                                <circle cx="62" cy="50" r="3.5" fill="#1e293b"/>
+                                <path d="M 45 73 Q 50 78 55 73" stroke="#9d174d" stroke-width="2" fill="none"/>
+                                <ellipse cx="50" cy="61" rx="11" ry="7" fill="#f472b6"/>
+                                <circle cx="46" cy="61" r="2" fill="#9d174d"/>
+                                <circle cx="54" cy="61" r="2" fill="#9d174d"/>
+                            </svg>
+                            <span class="text-[9px] sm:text-[11px] font-bold text-slate-700 bg-amber-100 px-2 py-0.5 rounded-full border border-amber-300 shadow-sm whitespace-nowrap">혼 돼지 👦</span>
+                        </div>
+
+                        <!-- 딸 돼지 (낭 돼지) -->
+                        <div class="flex flex-col items-center shrink-0">
+                            <svg class="w-9 h-9 sm:w-12 sm:h-12 filter drop-shadow-sm" viewBox="0 0 100 100">
+                                <circle cx="70" cy="26" r="5" fill="#fbbf24"/>
+                                <circle cx="70" cy="26" r="2" fill="#ffffff"/>
+                                <polygon points="22,32 35,15 44,34" fill="#f472b6" />
+                                <polygon points="78,32 65,15 56,34" fill="#f472b6" />
+                                <circle cx="50" cy="55" r="34" fill="#fbcfe8" stroke="#f472b6" stroke-width="3"/>
+                                <circle cx="38" cy="50" r="3.5" fill="#1e293b"/>
+                                <circle cx="62" cy="50" r="3.5" fill="#1e293b"/>
+                                <circle cx="30" cy="57" r="4" fill="#f43f5e" opacity="0.5"/>
+                                <circle cx="70" cy="57" r="4" fill="#f43f5e" opacity="0.5"/>
+                                <ellipse cx="50" cy="61" rx="11" ry="7" fill="#f472b6"/>
+                                <circle cx="46" cy="61" r="2" fill="#9d174d"/>
+                                <circle cx="54" cy="61" r="2" fill="#9d174d"/>
+                            </svg>
+                            <span class="text-[9px] sm:text-[11px] font-bold text-slate-700 bg-pink-100 px-2 py-0.5 rounded-full border border-pink-300 shadow-sm whitespace-nowrap">낭 돼지 👧</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 룰렛 테두리 장식 원 -->
+                <div class="relative w-full max-w-[290px] xs:max-w-[320px] sm:max-w-[420px] aspect-square flex items-center justify-center p-2.5 sm:p-3 bg-white/60 rounded-full border-4 border-white backdrop-blur-xl glow-effect">
+                    
+                    <!-- 룰렛 지점 화살표 (Pointer) -->
+                    <div class="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-3 z-20 filter drop-shadow-md">
+                        <div class="w-8 h-10 bg-gradient-to-b from-amber-300 to-amber-500 [clip-path:polygon(0%_0%,100%_0%,50%_100%)]"></div>
+                        <div class="w-3 h-3 bg-white rounded-full absolute top-1 left-1/2 -translate-x-1/2 opacity-90"></div>
+                    </div>
+
+                    <!-- 실제 HTML5 Canvas -->
+                    <canvas id="rouletteCanvas" width="800" height="800" class="w-full h-full rounded-full cursor-pointer transition-transform duration-300 hover:scale-[1.01] shadow-inner"></canvas>
+
+                    <!-- 중앙 장식 버튼/핀 -->
+                    <div id="centerPin" class="absolute w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-gradient-to-tr from-white to-pink-50 border-4 border-amber-400 flex items-center justify-center shadow-xl z-10 pointer-events-none">
+                        <span class="text-xl sm:text-2xl">🍽️</span>
+                    </div>
+                </div>
+
+                <!-- 룰렛 돌리기 대형 버튼 -->
+                <button id="spinBtn" onclick="spinRoulette()" 
+                    class="btn-glow mt-6 w-full max-w-xs sm:max-w-sm py-4 px-8 bg-gradient-to-r from-rose-500 via-pink-500 to-purple-500 rounded-2xl font-black text-xl sm:text-2xl tracking-wider text-white shadow-xl focus:outline-none focus:ring-4 focus:ring-pink-300 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none flex items-center justify-center gap-3">
+                    <i class="fa-solid fa-rotate-right text-xl"></i>
+                    <span>룰렛 돌리기!</span>
+                </button>
+            </div>
+
+            <!-- 오른쪽/하단: 메뉴 관리 영역 -->
+            <div class="lg:col-span-5 bg-white/70 backdrop-blur-xl border border-white/80 rounded-3xl p-5 sm:p-6 shadow-xl flex flex-col gap-5">
+                
+                <div>
+                    <h2 class="text-lg font-extrabold text-slate-800 flex items-center gap-2 mb-1">
+                        <i class="fa-solid fa-list-check text-pink-500"></i>
+                        <span>메뉴 목록 관리</span>
+                        <span id="menuCountBadge" class="text-xs bg-pink-100 text-pink-600 px-2.5 py-0.5 rounded-full font-bold ml-auto border border-pink-200">6개</span>
+                    </h2>
+                    <p class="text-xs text-slate-500">원하는 메뉴를 추가하거나 [X]로 삭제하세요.</p>
+                </div>
+
+                <!-- 메뉴 추가 입력 폼 -->
+                <form onsubmit="handleAddMenu(event)" class="flex gap-2">
+                    <input type="text" id="menuInput" placeholder="새 메뉴 이름 입력..." maxlength="12"
+                        class="flex-1 bg-white/90 border border-pink-200 rounded-xl px-4 py-3 text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:border-pink-500 focus:ring-2 focus:ring-pink-200 transition-all shadow-sm">
+                    <button type="submit" 
+                        class="bg-gradient-to-r from-pink-500 to-rose-500 hover:from-pink-600 hover:to-rose-600 text-white font-bold px-5 py-3 rounded-xl text-sm transition-all shadow-md active:scale-95 flex items-center justify-center shrink-0">
+                        <i class="fa-solid fa-plus mr-1"></i> 추가
+                    </button>
+                </form>
+
+                <!-- 등록된 메뉴 칩(Chip) List -->
+                <div class="flex flex-col gap-2">
+                    <div class="text-xs font-bold text-slate-400 uppercase tracking-wider">현재 선택지 (최소 2개 필요)</div>
+                    <div id="chipContainer" class="flex flex-wrap gap-2 max-h-56 overflow-y-auto pr-1 py-1">
+                        <!-- JS로 동적 생성됨 -->
+                    </div>
+                </div>
+
+                <!-- 빠른 리셋 / 프리셋 버튼 -->
+                <div class="pt-3 border-t border-slate-200 flex justify-between items-center text-xs text-slate-500 font-semibold">
+                    <button onclick="resetToDefault()" class="hover:text-pink-600 transition-colors flex items-center gap-1">
+                        <i class="fa-solid fa-rotate-left"></i> 기본 목록 초기화
+                    </button>
+                    <button onclick="clearAllMenus()" class="hover:text-rose-600 transition-colors flex items-center gap-1">
+                        <i class="fa-solid fa-trash-can"></i> 전체 삭제
+                    </button>
+                </div>
+            </div>
+
+        </main>
+
+        <!-- Footer -->
+        <footer class="text-center text-xs font-semibold text-slate-400 py-4">
+            © Pig Family Delicious Choice. Enjoy your meal! 🎉
+        </footer>
+    </div>
+
+    <!-- 당첨 결과 모달 (Modal) -->
+    <div id="resultModal" class="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-md flex items-center justify-center p-4 hidden">
+        <div class="bg-white/95 border-2 border-pink-200 rounded-3xl p-6 sm:p-8 max-w-sm w-full text-center shadow-2xl relative animate-modal">
+            
+            <!-- 상단 반짝이는 아이콘 -->
+            <div class="w-20 h-20 mx-auto bg-gradient-to-tr from-amber-300 via-pink-400 to-rose-500 rounded-full flex items-center justify-center text-4xl shadow-lg mb-4 glow-effect">
+                🎉
+            </div>
+
+            <h3 class="text-slate-400 text-xs font-extrabold tracking-wider uppercase mb-1">오늘의 당첨 메뉴!</h3>
+            <div id="winnerMenuText" class="text-3xl sm:text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-rose-500 via-pink-600 to-purple-600 py-2 my-1">
+                치킨
+            </div>
+            
+            <p id="winnerSubText" class="text-slate-600 text-sm mt-1 mb-6 leading-relaxed">
+                오늘 Pig Family의 메뉴는 <span class="font-bold text-pink-600" id="winnerSpan">치킨</span> 입니다! 🎉
+            </p>
+
+            <div class="flex flex-col gap-2">
+                <button onclick="closeModal()" 
+                    class="w-full py-3.5 bg-gradient-to-r from-pink-500 to-rose-500 rounded-xl font-bold text-white shadow-lg hover:from-pink-600 hover:to-rose-600 transition-all active:scale-95">
+                    맛있게 먹기! 😋
+                </button>
+                <button onclick="closeModal(); spinRoulette();" 
+                    class="w-full py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-xl font-bold text-sm transition-all">
+                    한 번 더 돌리기 🔄
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 경고/안내 메시지 팝업 (Alert Modal) -->
+    <div id="alertModal" class="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center p-4 hidden">
+        <div class="bg-white border border-pink-100 rounded-2xl p-6 max-w-xs w-full text-center shadow-2xl animate-modal">
+            <div class="text-amber-400 text-3xl mb-2">⚠️</div>
+            <p id="alertMessageText" class="text-slate-700 font-semibold text-sm mb-4">메뉴는 최소 2개 이상 등록해야 합니다!</p>
+            <button onclick="closeAlertModal()" class="w-full py-2 bg-pink-500 hover:bg-pink-600 text-white rounded-lg text-sm font-bold transition-colors">
+                확인
+            </button>
+        </div>
+    </div>
+
+    <!-- JavaScript 로직 -->
+    <script>
+        // --- 데이터 상태 (초기 메뉴 목록에 햄버거 포함) ---
+        const DEFAULT_MENUS = ['치킨', '피자', '중국집', '분식', '보쌈', '햄버거'];
+        let menus = [...DEFAULT_MENUS];
+
+        // 감각적이고 선명한 색상 팔레트
+        const COLOR_PALETTE = [
+            '#ef4444', // Red
+            '#f97316', // Orange
+            '#f59e0b', // Amber
+            '#10b981', // Emerald
+            '#06b6d4', // Cyan
+            '#3b82f6', // Blue
+            '#8b5cf6', // Violet
+            '#ec4899', // Pink
+            '#f43f5e', // Rose
+            '#84cc16'  // Lime
+        ];
+
+        // --- Web Audio API (효과음 생성기) ---
+        let audioCtx = null;
+
+        function getAudioContext() {
+            if (!audioCtx) {
+                const AudioContext = window.AudioContext || window.webkitAudioContext;
+                audioCtx = new AudioContext();
+            }
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+            return audioCtx;
+        }
+
+        // 룰렛 회전 시 핀 지나치는 틱(Tick) 소리
+        function playTickSound() {
+            try {
+                const ctx = getAudioContext();
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+
+                osc.type = 'triangle';
+                // 짧은 고음 틱 소리
+                osc.frequency.setValueAtTime(600, ctx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(120, ctx.currentTime + 0.04);
+
+                gain.gain.setValueAtTime(0.15, ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.04);
+
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+
+                osc.start();
+                osc.stop(ctx.currentTime + 0.04);
+            } catch (e) {
+                // 오디오 재생 실패 무시
+            }
+        }
+
+        // 당첨 빵빠레(Fanfare) 승리 효과음
+        function playFanfareSound() {
+            try {
+                const ctx = getAudioContext();
+                const now = ctx.currentTime;
+                
+                // 빵빠레 화음 노트 (도-미-솔-도)
+                const notes = [
+                    { f: 523.25, t: 0,    d: 0.15 }, // C5
+                    { f: 659.25, t: 0.12, d: 0.15 }, // E5
+                    { f: 783.99, t: 0.24, d: 0.18 }, // G5
+                    { f: 1046.50, t: 0.40, d: 0.60 } // C6 (길게)
+                ];
+
+                notes.forEach(note => {
+                    const osc = ctx.createOscillator();
+                    const gain = ctx.createGain();
+
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(note.f, now + note.t);
+
+                    gain.gain.setValueAtTime(0.2, now + note.t);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + note.t + note.d);
+
+                    osc.connect(gain);
+                    gain.connect(ctx.destination);
+
+                    osc.start(now + note.t);
+                    osc.stop(now + note.t + note.d);
+                });
+            } catch (e) {
+                // 오디오 재생 실패 무시
+            }
+        }
+
+        // --- 룰렛 애니메이션 상태 변수 ---
+        const canvas = document.getElementById('rouletteCanvas');
+        const ctx = canvas.getContext('2d');
+        
+        let currentAngle = 0; // 현재 룰렛 각도 (Radian)
+        let isSpinning = false;
+        let spinAnimationId = null;
+        let lastSliceIndex = -1; // 틱 소리 감지용 이전 슬라이스 인덱스
+
+        // --- 초기화 ---
+        window.addEventListener('load', () => {
+            renderChips();
+            drawRoulette();
+        });
+
+        // --- 룰렛 그리기 (Canvas API) ---
+        function drawRoulette() {
+            const width = canvas.width;
+            const height = canvas.height;
+            const centerX = width / 2;
+            const centerY = height / 2;
+            const outerRadius = width / 2 - 20;
+
+            // 캔버스 초기화
+            ctx.clearRect(0, 0, width, height);
+
+            const numSlices = menus.length;
+
+            if (numSlices === 0) {
+                // 메뉴가 없을 때 빈 배경 그리기
+                ctx.save();
+                ctx.beginPath();
+                ctx.arc(centerX, centerY, outerRadius, 0, 2 * Math.PI);
+                ctx.fillStyle = '#334155';
+                ctx.fill();
+                ctx.strokeStyle = '#475569';
+                ctx.lineWidth = 8;
+                ctx.stroke();
+
+                ctx.fillStyle = '#94a3b8';
+                ctx.font = 'bold 36px "Noto Sans KR", sans-serif';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText('메뉴를 추가해 주세요!', centerX, centerY);
+                ctx.restore();
+                return;
+            }
+
+            const sliceAngle = (2 * Math.PI) / numSlices;
+
+            ctx.save();
+            ctx.translate(centerX, centerY);
+            ctx.rotate(currentAngle);
+
+            // 각 조각 그리기
+            for (let i = 0; i < numSlices; i++) {
+                const startAngle = i * sliceAngle;
+                const endAngle = startAngle + sliceAngle;
+                const color = COLOR_PALETTE[i % COLOR_PALETTE.length];
+
+                // 扇形 (부채꼴)
+                ctx.beginPath();
+                ctx.moveTo(0, 0);
+                ctx.arc(0, 0, outerRadius, startAngle, endAngle);
+                ctx.closePath();
+
+                ctx.fillStyle = color;
+                ctx.fill();
+
+                // 테두리 구분선
+                ctx.lineWidth = 4;
+                ctx.strokeStyle = '#0f172a';
+                ctx.stroke();
+
+                // 텍스트 출력
+                ctx.save();
+                const textAngle = startAngle + sliceAngle / 2;
+                ctx.rotate(textAngle);
+                ctx.textAlign = 'right';
+                ctx.textBaseline = 'middle';
+                ctx.fillStyle = '#ffffff';
+
+                // 글자 수에 따른 폰트 크기 조절
+                const text = menus[i];
+                let fontSize = 42;
+                if (numSlices > 8) fontSize = 34;
+                if (numSlices > 12) fontSize = 28;
+                if (text.length > 5) fontSize -= 6;
+
+                ctx.font = `900 ${fontSize}px "Noto Sans KR", sans-serif`;
+                
+                // 그림자 효과
+                ctx.shadowColor = 'rgba(0,0,0,0.6)';
+                ctx.shadowBlur = 6;
+                ctx.shadowOffsetX = 2;
+                ctx.shadowOffsetY = 2;
+
+                ctx.fillText(text, outerRadius - 50, 0);
+                ctx.restore();
+            }
+
+            // Outer Shadow & Inner Circle Rim
+            ctx.restore();
+
+            // 외곽 테두리 링
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, outerRadius, 0, 2 * Math.PI);
+            ctx.lineWidth = 12;
+            ctx.strokeStyle = '#1e293b';
+            ctx.stroke();
+        }
+
+        // --- 룰렛 회전 애니메이션 (감속 회전) ---
+        function spinRoulette() {
+            if (isSpinning) return;
+
+            if (menus.length < 2) {
+                showAlertModal("메뉴는 최소 2개 이상 등록해야 룰렛을 돌릴 수 있습니다! 🍕");
+                return;
+            }
+
+            // 사용자 클릭 시 오디오 컨텍스트 활성화
+            getAudioContext();
+
+            isSpinning = true;
+            document.getElementById('spinBtn').disabled = true;
+
+            // 회전 시간 설정 (3.5 ~ 5초)
+            const minDuration = 3500;
+            const randomDuration = Math.random() * 1500;
+            const duration = minDuration + randomDuration;
+            
+            const startAngle = currentAngle;
+            // 최소 5바퀴 이상 + 랜덤 회전각
+            const totalRotation = (Math.PI * 2 * (5 + Math.floor(Math.random() * 5))) + (Math.random() * Math.PI * 2);
+            
+            const startTime = performance.now();
+            lastSliceIndex = -1;
+
+            function animate(currentTime) {
+                const elapsed = currentTime - startTime;
+                const progress = Math.min(elapsed / duration, 1);
+
+                // Ease Out Cubic (자연스러운 감속 효과)
+                const easeOut = 1 - Math.pow(1 - progress, 3);
+                
+                currentAngle = startAngle + (totalRotation * easeOut);
+                drawRoulette();
+
+                // 핀(Pointer) 영역을 통과하는 조각이 바뀔 때마다 틱 소리 재생
+                if (menus.length > 0) {
+                    const numSlices = menus.length;
+                    const sliceAngle = (2 * Math.PI) / numSlices;
+                    let normalizedAngle = currentAngle % (2 * Math.PI);
+                    if (normalizedAngle < 0) normalizedAngle += (2 * Math.PI);
+                    
+                    let pointerAngle = (1.5 * Math.PI - normalizedAngle) % (2 * Math.PI);
+                    if (pointerAngle < 0) pointerAngle += (2 * Math.PI);
+
+                    const currentSliceIndex = Math.floor(pointerAngle / sliceAngle) % numSlices;
+                    if (currentSliceIndex !== lastSliceIndex) {
+                        if (lastSliceIndex !== -1) {
+                            playTickSound();
+                        }
+                        lastSliceIndex = currentSliceIndex;
+                    }
+                }
+
+                if (progress < 1) {
+                    spinAnimationId = requestAnimationFrame(animate);
+                } else {
+                    isSpinning = false;
+                    document.getElementById('spinBtn').disabled = false;
+                    calculateWinner();
+                }
+            }
+
+            spinAnimationId = requestAnimationFrame(animate);
+        }
+
+        // --- 당첨자 계산 & 팝업 모달 연출 ---
+        function calculateWinner() {
+            const numSlices = menus.length;
+            const sliceAngle = (2 * Math.PI) / numSlices;
+
+            // 현재 각도를 0 ~ 2PI 범위로 정규화
+            let normalizedAngle = currentAngle % (2 * Math.PI);
+            if (normalizedAngle < 0) normalizedAngle += (2 * Math.PI);
+
+            // 포인터(화살표) 위치는 12시 방향 (1.5 * Math.PI)
+            let pointerAngle = (1.5 * Math.PI - normalizedAngle) % (2 * Math.PI);
+            if (pointerAngle < 0) pointerAngle += (2 * Math.PI);
+
+            const winningIndex = Math.floor(pointerAngle / sliceAngle) % numSlices;
+            const winningMenu = menus[winningIndex];
+
+            showWinnerModal(winningMenu);
+            triggerConfetti();
+            playFanfareSound(); // 빵빠레 당첨 효과음 재생
+        }
+
+        // --- 폭죽 애니메이션 (canvas-confetti) ---
+        function triggerConfetti() {
+            if (typeof confetti === 'function') {
+                const count = 200;
+                const defaults = { origin: { y: 0.7 } };
+
+                function fire(particleRatio, opts) {
+                    confetti(Object.assign({}, defaults, opts, {
+                        particleCount: Math.floor(count * particleRatio)
+                    }));
+                }
+
+                fire(0.25, { spread: 26, startVelocity: 55 });
+                fire(0.2, { spread: 60 });
+                fire(0.35, { spread: 100, decay: 0.91, scalar: 0.8 });
+                fire(0.1, { spread: 120, startVelocity: 25, decay: 0.92, scalar: 1.2 });
+                fire(0.1, { spread: 120, startVelocity: 45 });
+            }
+        }
+
+        // --- 메뉴 관리 (추가, 삭제, 칩 렌더링) ---
+        function handleAddMenu(event) {
+            event.preventDefault();
+            const input = document.getElementById('menuInput');
+            const menuName = input.value.trim();
+
+            if (!menuName) return;
+
+            if (menus.includes(menuName)) {
+                showAlertModal('이미 등록되어 있는 메뉴입니다! 😋');
+                return;
+            }
+
+            if (menus.length >= 16) {
+                showAlertModal('메뉴는 최대 16개까지만 추가할 수 있습니다.');
+                return;
+            }
+
+            menus.push(menuName);
+            input.value = '';
+            
+            renderChips();
+            drawRoulette();
+        }
+
+        function removeMenu(index) {
+            if (isSpinning) return;
+            menus.splice(index, 1);
+            renderChips();
+            drawRoulette();
+        }
+
+        function resetToDefault() {
+            if (isSpinning) return;
+            menus = [...DEFAULT_MENUS];
+            renderChips();
+            drawRoulette();
+        }
+
+        function clearAllMenus() {
+            if (isSpinning) return;
+            menus = [];
+            renderChips();
+            drawRoulette();
+        }
+
+        // 등록된 메뉴 칩(Chip) 렌더링
+        function renderChips() {
+            const container = document.getElementById('chipContainer');
+            const badge = document.getElementById('menuCountBadge');
+            
+            badge.textContent = `${menus.length}개`;
+            container.innerHTML = '';
+
+            if (menus.length === 0) {
+                container.innerHTML = `<span class="text-xs text-slate-500 py-2">등록된 메뉴가 없습니다. 메뉴를 추가해 보세요!</span>`;
+                return;
+            }
+
+            menus.forEach((menu, index) => {
+                const color = COLOR_PALETTE[index % COLOR_PALETTE.length];
+                const chip = document.createElement('div');
+                chip.className = `flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold text-white shadow-md transition-all hover:scale-105 select-none`;
+                chip.style.backgroundColor = color;
+                
+                chip.innerHTML = `
+                    <span>${escapeHtml(menu)}</span>
+                    <button onclick="removeMenu(${index})" title="삭제" class="hover:bg-black/20 rounded-full w-4 h-4 flex items-center justify-center transition-colors">
+                        <i class="fa-solid fa-xmark text-[10px]"></i>
+                    </button>
+                `;
+                container.appendChild(chip);
+            });
+        }
+
+        // --- 모달 팝업 컨트롤 ---
+        function showWinnerModal(winningMenu) {
+            document.getElementById('winnerMenuText').textContent = winningMenu;
+            document.getElementById('winnerSpan').textContent = winningMenu;
+            document.getElementById('resultModal').classList.remove('hidden');
+        }
+
+        function closeModal() {
+            document.getElementById('resultModal').classList.add('hidden');
+        }
+
+        function showAlertModal(msg) {
+            document.getElementById('alertMessageText').textContent = msg;
+            document.getElementById('alertModal').classList.remove('hidden');
+        }
+
+        function closeAlertModal() {
+            document.getElementById('alertModal').classList.add('hidden');
+        }
+
+        // XSS 방지용 HTML 이스케이프
+        function escapeHtml(str) {
+            return str.replace(/[&<>"']/g, function(m) {
+                return {
+                    '&': '&amp;',
+                    '<': '&lt;',
+                    '>': '&gt;',
+                    '"': '&quot;',
+                    "'": '&#039;'
+                }[m];
+            });
+        }
+    </script>
+</body>
+</html>
